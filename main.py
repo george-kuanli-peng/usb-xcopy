@@ -7,7 +7,7 @@ import wmi
 
 
 SOURCE_DIR = 'd:/temp/sermon'
-# SOURCE_DIR = 'd:/Documents/belief/服事/幸福小組'
+# SOURCE_DIR = 'd:/tools/AudacityPortable'
 
 
 def get_removable_disks():
@@ -58,6 +58,7 @@ def copy_disk(disk):
 
 
 def main():
+    errs = []
     disks = get_removable_disks()
     print_disks(disks)
     while True:
@@ -71,16 +72,25 @@ def main():
             print('無效的指令: ' + cmd)
     print('開始複製檔案 (操作完成前，請勿關閉視窗)...')
     for disk_i, disk in enumerate(disks, 1):
-        time_start = time.time()
-        print('寫入磁碟 %s (%d/%d): ' % (disk['DeviceID'], disk_i, len(disks)), end='')
-        copy_disk(disk)
-        print('寫入完成  ', end='')
-        # TODO: checksum
-        print('檢查完成  ', end='')
-        time_spent = time.time() - time_start
-        print('歷時 %d分%d秒' % (int(time_spent/60), time_spent-int(time_spent/60)*60))
-    print('所有磁碟寫入完成')
-    # TODO: errors writing a subset of disks
+        try:
+            time_start = time.time()
+            print('寫入磁碟 %s (%d/%d): ' % (disk['DeviceID'], disk_i, len(disks)), end='')
+            copy_disk(disk)
+            print('寫入完成  ', end='')
+            # TODO: checksum
+            print('檢查完成  ', end='')
+            time_spent = time.time() - time_start
+            print('歷時 %d分%d秒' % (int(time_spent/60), time_spent-int(time_spent/60)*60))
+        except Exception as e:
+            print('錯誤')
+            errs.append((disk, e))
+
+    if not errs:
+        print('所有磁碟寫入完成')
+    else:
+        print('有磁碟寫入錯誤:')
+        for disk, e in errs:
+            print(disk['DeviceID'] + ' ' + str(e))
 
 
 if __name__ == '__main__':
