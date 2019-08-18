@@ -6,10 +6,6 @@ Utility for copying files from a source directory to all removable disks on Wind
 
 1. OS: Windows 10
 1. Python 3.6+
-    - To install a portable distribution of Python, follow these steps:
-        1. Download zipped file from here: https://sourceforge.net/projects/portable-python/
-        1. Double-click on the file and extract the files on your computer
-        1. Go to the extracted folder, and double-click on the "Console-Launcher" icon, and run the command `python --version` in the window. If something like "Python 3.x.x" is printed on the screen, the installtion is complete.
 1. Python packages:
     - In the python console, run the command `pip install pywin32 WMI`
 
@@ -21,7 +17,7 @@ Utility for copying files from a source directory to all removable disks on Wind
 
 ## Execution
 
-Start the program by
+Double-click on the "run.bat" file, or start the program by
 
 ```
 python -u main.py
@@ -60,6 +56,8 @@ If there is anything wrong during the operation, something like this may be disp
 F: [WinError 183] 當檔案已存在時，無法建立該檔案。: 'F:/App'
 ```
 
+To retry to write the disks with failure during previous operation, remove all the disks that have been written successfully, clean up all the disks to retry, and run the program again.
+
 ## Known Problems
 
-1. File checking after writing has not been implemented currently.
+1. File checking after writing has not been fully implemented currently.
