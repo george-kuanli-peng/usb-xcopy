@@ -15,6 +15,9 @@ def get_removable_disks():
     disks = []
 
     for disk in c.Win32_LogicalDisk(DriveType=2):
+        if not disk.FileSystem or \
+           (isinstance(disk.MediaType, int) and (1 <= disk.MediaType <= 10 or 12 <= disk.MediaType <= 22)):
+            continue
         disks.append({
             'Caption': disk.Caption,
             'DeviceID': disk.DeviceID,
