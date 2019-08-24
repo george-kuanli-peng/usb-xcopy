@@ -3,11 +3,11 @@ import shutil
 import sys
 import time
 
+import tqdm
 import wmi
 
 
-SOURCE_DIR = 'd:/temp/sermon'
-# SOURCE_DIR = 'd:/tools/AudacityPortable'
+SOURCE_DIR = 'd:/tools/AudacityPortable'
 
 
 def get_removable_disks():
@@ -48,16 +48,40 @@ def get_disk_root_dir(disk):
     return disk['DeviceID'] + '/'
 
 
-def copy_disk(disk):
+def copy_disk(disk, copy_func=shutil.copy2):
     src_files = os.listdir(SOURCE_DIR)
     for f in src_files:
         src_path = os.path.join(SOURCE_DIR, f)
         dst_path = os.path.join(get_disk_root_dir(disk), f)
         if os.path.isfile(src_path):
-            shutil.copy2(src_path, dst_path)
+            copy_func(src_path, dst_path)
         elif os.path.isdir(src_path):
-            shutil.copytree(src_path, dst_path)
+            shutil.copytree(src_path, dst_path, copy_function=copy_func)
     # TODO: checksum
+
+
+def get_num_files(root_dir):
+    return sum([len(files) for _, _, files in os.walk(root_dir)])
+
+
+class CopyFileWithProgress(object):
+    def __init__(self, num_all_files, pb=None):
+        self._num_all_files = num_all_files
+        self._num_curr_files = 0
+        self._pb = pb
+
+    def __enter__(self):
+        self._pb = tqdm.tqdm(total=self._num_all_files, desc='Copy', mininterval=1.0, ascii=True)
+        return self
+
+    def __exit__(self, *exc):
+        self._pb.close()
+        self._pb = None
+
+    def __call__(self, src, dst):
+        shutil.copy2(src, dst)
+        self._num_curr_files = self._num_curr_files + 1
+        self._pb.update(1)
 
 
 def main():
@@ -65,7 +89,7 @@ def main():
     disks = get_removable_disks()
     print_disks(disks)
     while True:
-        cmd = input('開始複製檔案，請輸入 yes；取消操作，請輸入 no 或直接關閉視窗: ')
+        cmd = input('開始複製檔案 (yes: 開始 / no: 取消操作)? ')
         if cmd.strip().lower() == 'yes':
             break
         elif cmd.strip().lower() == 'no':
@@ -73,15 +97,14 @@ def main():
             sys.exit(0)
         else:
             print('無效的指令: ' + cmd)
-    print('開始複製檔案 (操作完成前，請勿關閉視窗)...')
+    num_files = get_num_files(SOURCE_DIR)
+    print('開始複製 %d 個檔案至各磁區 (操作完成前，請勿關閉視窗)...' % num_files)
     for disk_i, disk in enumerate(disks, 1):
         try:
             time_start = time.time()
-            print('寫入磁碟 %s (%d/%d): ' % (disk['DeviceID'], disk_i, len(disks)), end='')
-            copy_disk(disk)
-            print('寫入完成  ', end='')
-            # TODO: checksum
-            print('檢查完成  ', end='')
+            print('寫入磁碟 %s (%d/%d): ' % (disk['DeviceID'], disk_i, len(disks)))
+            with CopyFileWithProgress(num_files) as copy_func:
+                copy_disk(disk, copy_func=copy_func)
             time_spent = time.time() - time_start
             print('歷時 %d分%d秒' % (int(time_spent/60), time_spent-int(time_spent/60)*60))
         except Exception as e:

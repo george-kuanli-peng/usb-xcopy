@@ -7,7 +7,7 @@ Utility for copying files from a source directory to all removable disks on Wind
 1. OS: Windows 10
 1. Python 3.6+
 1. Python packages:
-    - In the python console, run the command `pip install pywin32 WMI`
+    - In the python console, run the command `pip install pywin32 WMI tqdm`
 
 ## Configuration
 
