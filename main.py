@@ -7,7 +7,7 @@ import tqdm
 import wmi
 
 
-SOURCE_DIR = 'd:/tools/AudacityPortable'
+SOURCE_DIR = 'd:/tools/AudacityPortable/Other'
 
 
 def get_removable_disks():
@@ -77,11 +77,17 @@ class CopyFileWithProgress(object):
     def __exit__(self, *exc):
         self._pb.close()
         self._pb = None
+        self.check_num_files()
 
     def __call__(self, src, dst):
         shutil.copy2(src, dst)
         self._num_curr_files = self._num_curr_files + 1
         self._pb.update(1)
+
+    def check_num_files(self):
+        if self._num_all_files != self._num_curr_files:
+            raise Exception('寫入檔案數目錯誤: 總數 %d, 實際寫入 %d' %
+                            (self._num_all_files, self._num_curr_files))
 
 
 def main():
